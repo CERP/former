@@ -1,0 +1,19 @@
+{
+  "name": "former",
+  "version": "1.0.0",
+  "description": "form handlings",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Taimur Shah",
+  "license": "ISC",
+  "dependencies": {
+    "@ironbay/dynamic": "^1.0.10",
+    "@types/node": "^12.0.7",
+    "@types/react": "^16.8.19",
+    "moment": "^2.24.0",
+    "react": "^16.8.6"
+  }
+}
