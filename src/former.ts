@@ -15,16 +15,16 @@ interface Spec {
 
 export default class Former {
 
-	_component : React.Component<any, any, any>;
-	base_path : Array<string>;
-	_conditions : ConditionItem[] 
-	
+	_component: React.Component<any, any, any>;
+	base_path: Array<string>;
+	_conditions: ConditionItem[]
+
 	// if I change conditions to an object, i can specify conditions with path key
-		// but what if the path is more than length 1, i can come up with my own id. but that is annoying.
+	// but what if the path is more than length 1, i can come up with my own id. but that is annoying.
 	// that lets me do former.conditions(["thing"]) && <div className="row">....</div>
 	// how to improve that more - why write the path 2 times
 
-	constructor(_component : React.Component<any, any, any>, base_path : Array<string>, conditions?: ConditionItem[]) {
+	constructor(_component: React.Component<any, any, any>, base_path: Array<string>, conditions?: ConditionItem[]) {
 
 		this._component = _component;
 		this.base_path = base_path;
@@ -32,7 +32,7 @@ export default class Former {
 		this._conditions = conditions || [];
 	}
 
-	check(path : Array<string>) {
+	check(path: Array<string>) {
 
 		const path_key = path.join("-*-")
 
@@ -40,8 +40,8 @@ export default class Former {
 
 		return conds.reduce((agg, curr) => this._checkCond(curr) && agg, true)
 	}
-	
-	_checkCond(cond : ConditionItem, state = this._component.state){
+
+	_checkCond(cond: ConditionItem, state = this._component.state) {
 
 		// cond.depends is no longer a list of all the things that need to be true (list of AND)
 		// there can now be an OR in between two entries.
@@ -77,25 +77,25 @@ export default class Former {
 		type ExprStack = ["OR"?, Spec?, Spec?]
 		const { runner: runner, exprStack: exprStack } = cond.depends.reduce((agg, curr) => {
 
-			if(agg.exprStack.length > 0 && agg.exprStack.length < 3) {
-				return { 
+			if (agg.exprStack.length > 0 && agg.exprStack.length < 3) {
+				return {
 					exprStack: [...agg.exprStack, curr as Spec] as ExprStack,  // this "as" should not be necessary but the compiler is complaining.
-					runner: agg.runner 
+					runner: agg.runner
 				}
 			}
 
-			if(curr === "OR") {
+			if (curr === "OR") {
 				return {
 					exprStack: [curr] as ExprStack, runner: agg.runner
 				}
 			}
 
-			if(agg.exprStack.length === 3) {
+			if (agg.exprStack.length === 3) {
 				// first one will be "OR"
 				const condA = agg.exprStack[1]
 				const condB = agg.exprStack[2]
 
-				if(condA === undefined || condB === undefined) {
+				if (condA === undefined || condB === undefined) {
 					alert("survey condition is undefined")
 					return {
 						exprStack: agg.exprStack,
@@ -107,20 +107,20 @@ export default class Former {
 				const condA_val = Dynamic.get(state, [...this.base_path, ...condA.path]) == condA.value
 				const condB_val = Dynamic.get(state, [...this.base_path, ...condB.path]) == condB.value
 
-				return { 
-					exprStack: [] as ExprStack, 
+				return {
+					exprStack: [] as ExprStack,
 					runner: agg.runner && (condA_val || condB_val)
 				}
 			}
 
-			return { 
+			return {
 				runner: (agg.runner && Dynamic.get(state, [...this.base_path, ...curr.path]) == curr.value),
 				exprStack: [] as ExprStack
 			}
 
 		}, { exprStack: [] as ExprStack, runner: true })
 
-		if(exprStack.length === 3) {
+		if (exprStack.length === 3) {
 			const condA = exprStack[1] as Spec
 			const condB = exprStack[2] as Spec
 
@@ -142,7 +142,7 @@ export default class Former {
 		*/
 	}
 
-	_setState(path : Array<string>, value : any, cb = () => {}) {
+	_setState(path: Array<string>, value: any, cb = () => { }) {
 
 		// every time we set state, we check if any of the conditions we need are violated.
 		// if they are then we snap back sections of state as specified in conditions
@@ -151,34 +151,34 @@ export default class Former {
 		let state_copy = JSON.parse(JSON.stringify(this._component.state))
 		Dynamic.put(state_copy, [...this.base_path, ...path], value)
 
-		for(let cond of this._conditions) {
+		for (let cond of this._conditions) {
 			const current = Dynamic.get(state_copy, [...this.base_path, ...cond.path])
-			if(!this._checkCond(cond, state_copy) && current != cond.value) {
+			if (!this._checkCond(cond, state_copy) && current != cond.value) {
 				console.log("snapping back", cond.path, "to value", cond.value)
 				Dynamic.put(state_copy, [...this.base_path, ...cond.path], cond.value)
 			}
 		}
 
-		return this._component.setState((state : any) => state_copy)
+		return this._component.setState((state: any) => state_copy, cb)
 	}
 
-	handle(path : Array<string>, validate = (x : any) => true, cb = () => {}) {
+	handle(path: Array<string>, validate = (x: any) => true, cb = () => { }) {
 
-		return (e : React.ChangeEvent<HTMLInputElement>) => {
+		return (e: React.ChangeEvent<HTMLInputElement>) => {
 			const value = this._getValue(e);
-			if(validate(value)) {
+			if (validate(value)) {
 				this._setState(path, value, cb)
 			}
 		}
 	}
 
-	super_handle(path : Array<string>, validate = (x : any) => true, cb = () => { }) {
+	super_handle(path: Array<string>, validate = (x: any) => true, cb = () => { }) {
 		const full_path = [...this.base_path, ...path];
-		
+
 		return {
-			onChange: (e : React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+			onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
 				const value = this._getValue(e);
-				if(validate(value)) {
+				if (validate(value)) {
 					this._setState(path, value, cb)
 				}
 			},
@@ -187,13 +187,13 @@ export default class Former {
 		}
 	}
 
-	_getValue(event : React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+	_getValue(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
 
-		if(isChecked(event)) {
+		if (isChecked(event)) {
 			return event.target.checked;
 		}
 
-		if(event.target.type === "date") {
+		if (event.target.type === "date") {
 			return moment(event.target.value, "YYYY-MM-DD").unix() * 1000;
 		}
 
@@ -201,6 +201,6 @@ export default class Former {
 	}
 }
 
-const isChecked = (event : React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): event is React.ChangeEvent<HTMLInputElement> => {
+const isChecked = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): event is React.ChangeEvent<HTMLInputElement> => {
 	return (<React.ChangeEvent<HTMLInputElement>>event).target.type === "checkbox"
 }

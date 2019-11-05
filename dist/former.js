@@ -91,7 +91,7 @@ class Former {
                 dynamic_1.default.put(state_copy, [...this.base_path, ...cond.path], cond.value);
             }
         }
-        return this._component.setState((state) => state_copy);
+        return this._component.setState((state) => state_copy, cb);
     }
     handle(path, validate = (x) => true, cb = () => { }) {
         return (e) => {
